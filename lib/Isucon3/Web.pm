@@ -13,7 +13,7 @@ use IO::Handle;
 use Encode;
 use Time::Piece;
 use Redis::Fast;
-use Text::Markdown qw/markdown/;
+use Text::Markdown qw/ markdown /;
 
 sub load_config {
     my $self = shift;
@@ -24,11 +24,6 @@ sub load_config {
         close($fh);
         decode_json($json);
     };
-}
-
-sub markdown {
-    my $content = shift;
-    return markdown($content);
 }
 
 sub dbh {
