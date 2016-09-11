@@ -139,19 +139,13 @@ get '/recent/:page' => [qw(session get_user)] => sub {
     my $memo_ids = $self->redis->zrevrange("memos:public", $offset, $offset + 100);
     my $memos = [];
     if (scalar(@$memo_ids)) {
-        $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
+        $memos = $self->dbh->select_all("SELECT memos.*, username FROM memos JOIN users ON memos.user = users.id WHERE memos.id IN(" . join(',', @$memo_ids) . ') ORDER BY memos.id DESC');
     }
 
     if ( @$memos == 0 ) {
         return $c->halt(404);
     }
 
-    for my $memo (@$memos) {
-        $memo->{username} = $self->dbh->select_one(
-            'SELECT username FROM users WHERE id=?',
-            $memo->{user},
-        );
-    }
     $c->render('index.tx', {
         memos => $memos,
         page  => $page,
