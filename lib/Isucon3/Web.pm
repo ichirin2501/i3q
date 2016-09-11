@@ -123,7 +123,7 @@ get '/recent/:page' => [qw(session get_user)] => sub {
     my $memo_ids = $self->redis->zrevrange("memos:public", $offset, $offset + 100);
     my $memos = [];
     if (scalar(@$memo_ids)) {
-        $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
+        $memos = $self->dbh->select_all("SELECT id,user,is_private,created_at,updated_at,username,SUBSTRING_INDEX(content,\'\n\',1) AS title FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
     }
 
     if ( @$memos == 0 ) {
