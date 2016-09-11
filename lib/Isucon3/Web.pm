@@ -137,7 +137,10 @@ get '/recent/:page' => [qw(session get_user)] => sub {
     );
     my $offset = $page * 100;
     my $memo_ids = $self->redis->zrevrange("memos:public", $offset, $offset + 100);
-    my $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
+    my $memos = [];
+    if (scalar(@$memo_ids)) {
+        $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
+    }
 
     if ( @$memos == 0 ) {
         return $c->halt(404);
