@@ -12,3 +12,4 @@ requires "Cache::Memcached::Fast";
 requires "Gazelle";
 requires "Server::Starter";
 requires "Redis::Fast";
+requires "Text::Markdown";

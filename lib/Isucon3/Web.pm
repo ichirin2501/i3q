@@ -13,6 +13,7 @@ use IO::Handle;
 use Encode;
 use Time::Piece;
 use Redis::Fast;
+use Text::Markdown qw/markdown/;
 
 sub load_config {
     my $self = shift;
@@ -27,12 +28,7 @@ sub load_config {
 
 sub markdown {
     my $content = shift;
-    my ($fh, $filename) = tempfile();
-    $fh->print(encode_utf8($content));
-    $fh->close;
-    my $html = qx{ ../bin/markdown $filename };
-    unlink $filename;
-    return $html;
+    return markdown($content);
 }
 
 sub dbh {
