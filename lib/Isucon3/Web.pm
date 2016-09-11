@@ -113,7 +113,7 @@ get '/' => [qw(session get_user)] => sub {
     my $total = $self->redis->zcard("memos:public");
     # id desc のみで良い, 日付順は
     my $memos = $self->dbh->select_all(
-        'SELECT * FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100',
+        'SELECT * FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100'
     );
 
     # 名前埋め込み
@@ -122,8 +122,9 @@ get '/' => [qw(session get_user)] => sub {
         $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
     }
     my $username_hash = {};
-    $username_hash->{ $_->{id} } = $_->{username} for @$usernames;
-
+    for my $u (@$uesrnames) {
+        $username_hash->{ $u->{id} } = $u->{username};
+    }
     for my $memo (@$memos) {
         $memo->{username} = $username_hash->{ $memo->{user} };
     }
@@ -156,8 +157,9 @@ get '/recent/:page' => [qw(session get_user)] => sub {
         $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
     }
     my $username_hash = {};
-    $username_hash->{ $_->{id} } = $_->{username} for @$usernames;
-
+    for my $u (@$usernames) {
+        $username_hash->{ $u->{id} } = $u->{username};
+    }
     for my $memo (@$memos) {
         $memo->{username} = $username_hash->{ $memo->{user} };
     }
