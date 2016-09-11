@@ -111,6 +111,7 @@ get '/' => [qw(session get_user)] => sub {
         memos => $memos,
         page  => 0,
         total => $total,
+        uri_for_memo_sla => $c->req->uri_for('/memo/'),
     });
 };
 
@@ -133,6 +134,7 @@ get '/recent/:page' => [qw(session get_user)] => sub {
         memos => $memos,
         page  => $page,
         total => $total,
+        uri_for_memo_sla => $c->req->uri_for('/memo/'),
     });
 };
 
@@ -205,7 +207,11 @@ get '/mypage' => [qw(session get_user require_user)] => sub {
         'SELECT id, content, is_private, created_at, updated_at FROM memos WHERE user=? ORDER BY created_at DESC',
         $c->stash->{user}->{id},
     );
-    $c->render('mypage.tx', { memos => $memos });
+    $c->render('mypage.tx', {
+        memos => $memos,
+        uri_for_memo => $c->req->uri_for('/memo'),
+        uri_for_memo_sla => $c->req->uri_for('/memo/'),
+    });
 };
 
 post '/memo' => [qw(session get_user require_user anti_csrf)] => sub {
@@ -269,6 +275,7 @@ get '/memo/:id' => [qw(session get_user)] => sub {
         memo  => $memo,
         older => $older,
         newer => $newer,
+        uri_for_memo_sla => $c->req->uri_for('/memo/'),
     });
 };
 
