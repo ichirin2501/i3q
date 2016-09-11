@@ -251,30 +251,41 @@ get '/memo/:id' => [qw(session get_user)] => sub {
     }
     $memo->{content_html} = markdown($memo->{content});
 
-    my $cond;
+    my $is_public_only = 0;
     if ($user && $user->{id} == $memo->{user}) {
-        $cond = "";
+        # 公開/非公開問わず
+        $is_public_only = 0;
     }
     else {
-        $cond = "AND is_private=0";
+        # 公開only
+        $is_public_only = 1;
     }
 
-    my $memos = $self->dbh->select_all(
-        "SELECT * FROM memos WHERE user=? $cond ORDER BY created_at",
-        $memo->{user},
-    );
-    my ($newer, $older);
-    for my $i ( 0 .. scalar @$memos - 1 ) {
-        if ( $memos->[$i]->{id} eq $memo->{id} ) {
-            $older = $memos->[ $i - 1 ] if $i > 0;
-            $newer = $memos->[ $i + 1 ] if $i < @$memos;
-        }
+    # older/newer のidさえわかればよい
+    my $self_id; # ごみ
+    my ($newer_id, $older_id);
+
+    # keyが違うだけでロジックは一緒
+    my $target_key = "";
+    if ($is_public_only == 1) {
+        $target_key = sprintf("memos:user:%d:public", $memo->{user});
+    } else {
+        $target_key = sprintf("memos:user:%d:all", $memo->{user});
+    }
+
+    my $rk = $self->redis->zrank($target_key, $memo->{id});
+    if ($rk == 0) {
+        my $seq = $self->redis->zrange($target_key, 0, 1);
+        ($self_id, $newer_id) = @$seq;
+    } else {
+        my $seq = $self->redis->zrange($target_key, $rk - 1, $rk + 1);
+        ($older_id, $self_id, $newer_id) = @$seq;
     }
 
     $c->render('memo.tx', {
         memo  => $memo,
-        older => $older,
-        newer => $newer,
+        older_id => $older_id,
+        newer_id => $newer_id,
         uri_for_memo_sla => $c->req->uri_for('/memo/'),
     });
 };
