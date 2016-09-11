@@ -118,7 +118,7 @@ get '/' => [qw(session get_user)] => sub {
 
     # 名前埋め込み
     my $usernames = [];
-    if (scalar(@$memos) {
+    if (scalar(@$memos)) {
         $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
     }
     my $username_hash = {};
@@ -153,7 +153,7 @@ get '/recent/:page' => [qw(session get_user)] => sub {
 
     # 名前埋め込み
     my $usernames = [];
-    if (scalar(@$memos) {
+    if (scalar(@$memos)) {
         $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
     }
     my $username_hash = {};
