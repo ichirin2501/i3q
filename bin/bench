@@ -5,5 +5,5 @@ set -ex
 IPADDR=$1
 WORKLOAD=${WORKLOAD:-"1"}
 
-ssh -t isucon@$IPADDR "cd /home/isucon/webapp/perl && sudo ./bin/init.sh && sleep 5 && sudo isucon3 benchmark --workload ${WORKLOAD} && sudo ./bin/after-bench.sh"
+ssh -t isucon@$IPADDR "cd /home/isucon/webapp/perl && sudo ./bin/init.sh && sleep 5 && sudo isucon3 benchmark --init /home/isucon/webapp/perl/bin/pre-bench.sh --workload ${WORKLOAD} && sudo ./bin/after-bench.sh"
 
