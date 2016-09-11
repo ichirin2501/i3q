@@ -107,19 +107,6 @@ get '/' => [qw(session get_user)] => sub {
         'SELECT * FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100'
     );
 
-    # 名前埋め込み
-    my $usernames = [];
-    if (scalar(@$memos)) {
-        $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
-    }
-    my $username_hash = {};
-    for my $u (@$usernames) {
-        $username_hash->{ $u->{id} } = $u->{username};
-    }
-    for my $memo (@$memos) {
-        $memo->{username} = $username_hash->{ $memo->{user} };
-    }
-
     $c->render('index.tx', {
         memos => $memos,
         page  => 0,
@@ -140,19 +127,6 @@ get '/recent/:page' => [qw(session get_user)] => sub {
 
     if ( @$memos == 0 ) {
         return $c->halt(404);
-    }
-
-    # 名前埋め込み
-    my $usernames = [];
-    if (scalar(@$memos)) {
-        $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
-    }
-    my $username_hash = {};
-    for my $u (@$usernames) {
-        $username_hash->{ $u->{id} } = $u->{username};
-    }
-    for my $memo (@$memos) {
-        $memo->{username} = $username_hash->{ $memo->{user} };
     }
 
     $c->render('index.tx', {
@@ -238,10 +212,11 @@ post '/memo' => [qw(session get_user require_user anti_csrf)] => sub {
     my ($self, $c) = @_;
 
     $self->dbh->query(
-        'INSERT INTO memos (user, content, is_private, created_at) VALUES (?, ?, ?, now())',
+        'INSERT INTO memos (user, content, is_private, created_at, username) VALUES (?, ?, ?, now(),?)',
         $c->stash->{user}->{id},
         scalar $c->req->param('content'),
         scalar($c->req->param('is_private')) ? 1 : 0,
+        $c->stash->{user}->{username},
     );
     my $memo_id = $self->dbh->last_insert_id;
 
@@ -269,10 +244,6 @@ get '/memo/:id' => [qw(session get_user)] => sub {
         }
     }
     $memo->{content_html} = markdown($memo->{content});
-    $memo->{username} = $self->dbh->select_one(
-        'SELECT username FROM users WHERE id=?',
-        $memo->{user},
-    );
 
     my $cond;
     if ($user && $user->{id} == $memo->{user}) {
