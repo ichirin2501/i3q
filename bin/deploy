@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -ex
+IPADDR=$1
+USERNAME=$USER
+
+ssh -t isucon@$IPADDR "cd /home/isucon/webapp/perl && git pull && ./env.sh carton install && && sudo sysctl -p && sudo ./bin/logrotate.sh && sudo service memcached restart && sudo service mysql restart && sudo service supervisord reload"
