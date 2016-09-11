@@ -8,9 +8,8 @@ cd $(dirname $0)
 cd ..
 # root
 
-# ALTER
-mysql -uroot -proot isucon -e 'ALTER TABLE memos ADD INDEX `idx_is_private_id` (`is_private`, `id`)'
-mysql -uroot -proot isucon -e 'ALTER TABLE memos ADD INDEX `idx_user_created_at` (`user`, `created_at`)'
+# ALTER, etc
+mysql -uroot -proot isucon -e 'source /home/isucon/webapp/perl/config/alter.sql'
 
 # redis init
 redis-cli flushdb
