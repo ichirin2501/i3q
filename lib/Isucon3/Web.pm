@@ -104,7 +104,7 @@ get '/' => [qw(session get_user)] => sub {
     my $total = $self->redis->zcard("memos:public");
     # id desc のみで良い, 日付順は
     my $memos = $self->dbh->select_all(
-        'SELECT * FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100'
+        'SELECT id,user,is_private,created_at,updated_at,username,SUBSTRING_INDEX(content,\'\n\',1) AS title FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100'
     );
 
     $c->render('index.tx', {
@@ -204,7 +204,7 @@ get '/mypage' => [qw(session get_user require_user)] => sub {
     my ($self, $c) = @_;
 
     my $memos = $self->dbh->select_all(
-        'SELECT id, content, is_private, created_at, updated_at FROM memos WHERE user=? ORDER BY created_at DESC',
+        'SELECT id,user,is_private,created_at,updated_at,username,SUBSTRING_INDEX(content,\'\n\',1) AS title FROM memos WHERE user=? ORDER BY created_at DESC',
         $c->stash->{user}->{id},
     );
     $c->render('mypage.tx', {
