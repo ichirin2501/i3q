@@ -111,9 +111,23 @@ get '/' => [qw(session get_user)] => sub {
     my ($self, $c) = @_;
 
     my $total = $self->redis->zcard("memos:public");
+    # id desc のみで良い, 日付順は
     my $memos = $self->dbh->select_all(
-        'SELECT memos.*,username FROM memos JOIN users ON memos.user = users.id WHERE memos.is_private=0 ORDER BY memos.created_at DESC, memos.id DESC LIMIT 100',
+        'SELECT * FROM memos WHERE is_private=0 ORDER BY id DESC LIMIT 100',
     );
+
+    # 名前埋め込み
+    my $usernames = [];
+    if (scalar(@$memos) {
+        $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
+    }
+    my $username_hash = {};
+    $username_hash->{ $_->{id} } = $_->{username} for @$usernames;
+
+    for my $memo (@$memos) {
+        $memo->{username} = $username_hash->{ $memo->{user} };
+    }
+
     $c->render('index.tx', {
         memos => $memos,
         page  => 0,
@@ -129,11 +143,23 @@ get '/recent/:page' => [qw(session get_user)] => sub {
     my $memo_ids = $self->redis->zrevrange("memos:public", $offset, $offset + 100);
     my $memos = [];
     if (scalar(@$memo_ids)) {
-        $memos = $self->dbh->select_all("SELECT memos.*, username FROM memos JOIN users ON memos.user = users.id WHERE memos.id IN(" . join(',', @$memo_ids) . ') ORDER BY memos.id DESC');
+        $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
     }
 
     if ( @$memos == 0 ) {
         return $c->halt(404);
+    }
+
+    # 名前埋め込み
+    my $usernames = [];
+    if (scalar(@$memos) {
+        $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
+    }
+    my $username_hash = {};
+    $username_hash->{ $_->{id} } = $_->{username} for @$usernames;
+
+    for my $memo (@$memos) {
+        $memo->{username} = $username_hash->{ $memo->{user} };
     }
 
     $c->render('index.tx', {
