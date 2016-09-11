@@ -11,3 +11,7 @@ cd ..
 # ALTER
 mysql -uroot -proot isucon -e 'ALTER TABLE memos ADD INDEX `idx_is_private_created_at` (`is_private`, `created_at`)'
 mysql -uroot -proot isucon -e 'ALTER TABLE memos ADD INDEX `idx_user_created_at` (`user`, `created_at`)'
+
+# redis init
+redis-cli flushdb
+mysql -uroot -proot isucon -e 'SELECT id FROM memos WHERE is_private = 0 ORDER BY id' | ./env.sh carton exec -- perl script/redis-memos.pl

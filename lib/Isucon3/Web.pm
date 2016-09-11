@@ -12,6 +12,7 @@ use File::Temp qw/ tempfile /;
 use IO::Handle;
 use Encode;
 use Time::Piece;
+use Redis::Fast;
 
 sub load_config {
     my $self = shift;
@@ -48,6 +49,11 @@ sub dbh {
             },
         );
     };
+}
+
+sub redis {
+    my ($self) = @_;
+    $self->{_redis} ||= Redis::Fast->new;
 }
 
 filter 'session' => sub {
@@ -129,9 +135,10 @@ get '/recent/:page' => [qw(session get_user)] => sub {
     my $total = $self->dbh->select_one(
         'SELECT count(*) FROM memos WHERE is_private=0'
     );
-    my $memos = $self->dbh->select_all(
-        sprintf("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET %d", $page * 100)
-    );
+    my $offset = $page * 100;
+    my $memo_ids = $self->redis->zrevrange("memos:public", $offset, $offset + 100);
+    my $memos = $self->dbh->select_all("SELECT * FROM memos WHERE id IN(" . join(',', @$memo_ids) . ') ORDER BY id DESC');
+
     if ( @$memos == 0 ) {
         return $c->halt(404);
     }
@@ -231,6 +238,11 @@ post '/memo' => [qw(session get_user require_user anti_csrf)] => sub {
         scalar($c->req->param('is_private')) ? 1 : 0,
     );
     my $memo_id = $self->dbh->last_insert_id;
+
+    # redis
+    if (! $c->req->param('is_private')) { # public
+        $self->redis->zadd("memos:public", $memo_id, $memo_id);
+    }
     $c->redirect('/memo/' . $memo_id);
 };
 
