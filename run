@@ -7,4 +7,4 @@ exec carton exec -- \
     plackup -s Gazelle \
       --max-reqs-per-child=2000000 \
       --min-reqs-per-child=1000000 \
-      -E prod -a ./app.psgi
+      -E production -a ./app.psgi

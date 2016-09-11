@@ -14,3 +14,6 @@ sudo service mysql restart
 echo 'sleep 3s'
 sleep 3
 sudo service supervisord reload
+sleep 2
+echo "init ok"
+
