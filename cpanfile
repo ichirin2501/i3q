@@ -9,3 +9,5 @@ requires "DBD::mysql";
 requires "Starman";
 requires "Plack::Session";
 requires "Cache::Memcached::Fast";
+requires "Gazelle";
+requires "Server::Starter";
