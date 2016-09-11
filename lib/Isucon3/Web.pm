@@ -229,7 +229,11 @@ post '/memo' => [qw(session get_user require_user anti_csrf)] => sub {
     # redis
     if (! $c->req->param('is_private')) { # public
         $self->redis->zadd("memos:public", $memo_id, $memo_id);
+        $self->redis->zadd(sprintf("memos:user:%d:public", $c->stash->{user}{id}), $memo_id, $memo_id);
     }
+    # 公開非公開問わず
+    $self->redis->zadd(sprintf("memos:user:%d:all", $c->stash->{user}{id}), $memo_id, $memo_id);
+
     $c->redirect('/memo/' . $memo_id);
 };
 
