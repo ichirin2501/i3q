@@ -122,7 +122,7 @@ get '/' => [qw(session get_user)] => sub {
         $usernames = $self->dbh->select_all("SELECT id,username FROM users WHERE id IN(". join(',', map { $_->{user} } @$memos) . ")");
     }
     my $username_hash = {};
-    for my $u (@$uesrnames) {
+    for my $u (@$usernames) {
         $username_hash->{ $u->{id} } = $u->{username};
     }
     for my $memo (@$memos) {
