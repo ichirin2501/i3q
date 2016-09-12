@@ -13,3 +13,4 @@ requires "Gazelle";
 requires "Server::Starter";
 requires "Redis::Fast";
 requires "Text::Markdown";
+requires "Devel::NYTProf";

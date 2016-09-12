@@ -8,6 +8,10 @@ use Plack::Session::Store::Cache;
 use Plack::Session::State::Cookie;
 use Cache::Memcached::Fast;
 
+my @nytprof_opts = qw(addpid=1 start=no sigexit=1 blocks=1 file=/tmp/nytprof.out);
+$ENV{"NYTPROF"} = join ":", @nytprof_opts;
+require Devel::NYTProf;
+
 my $root_dir = File::Basename::dirname(__FILE__);
 
 my $app = Isucon3::Web->psgi($root_dir);
